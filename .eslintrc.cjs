@@ -6,6 +6,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-type-checked',
         'prettier',
     ],
+    ignorePatterns: ['dist/'],
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
     parserOptions: {
