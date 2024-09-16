@@ -16,8 +16,5 @@ module.exports = {
     root: true,
     rules: {
         'no-console': 'error',
-        'dot-notation': 'error',
-        '@typescript-eslint.io/rules/no-unsafe-call': 'off',
-        '@typescript-eslint.io/rules/no-unsafe-call': 'off',
     },
 };

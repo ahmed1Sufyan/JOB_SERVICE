@@ -4,7 +4,7 @@ function all(a: number) {
         result: 2,
         message: 'All passed',
     };
-    return result.result;
-}
 
+    return result['message'];
+}
 all(2);
