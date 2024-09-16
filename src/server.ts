@@ -4,6 +4,8 @@ function all(a: number) {
         result: 2,
         message: 'All passed',
     };
+    // eslint-disable-next-line no-console
+    console.log(result.message);
 
     return result['message'];
 }
