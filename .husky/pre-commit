@@ -1,1 +1,2 @@
-npx lint-staged --allow-empty
+npm run lint:fix
+npm run format:fix
