@@ -1,17 +1,19 @@
-import { log } from 'console';
 import app from './app';
-// import { HttpError } from "http-errors".
+import { Config } from './config';
+import { AppDataSource } from './config/data-source';
+import logger from './config/logger';
 
-const startServer = () => {
+const startServer = async () => {
     try {
-        app.listen(8000, () => log('server is listening on port 8000'));
+        const port = Config.PORT;
+        await AppDataSource.initialize();
+        app.listen(port, () =>
+            logger.info('server is listening on port ' + port),
+        );
     } catch (error: unknown) {
-        if (error instanceof Error) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            log.error(`Error starting server: ${error.message}`);
-        }
+        if (error instanceof Error) logger.error(error.message);
         process.exit(1);
     }
 };
 
-startServer();
+void startServer();

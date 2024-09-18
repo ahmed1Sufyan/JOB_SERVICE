@@ -1,10 +1,9 @@
-// import { configDotenv } from 'dotenv';
-// import path from 'path';
+import { configDotenv } from 'dotenv';
+import path from 'path';
 
-// configDotenv();
-// configDotenv({
-//     path: path.join(__dirname, `../../.env.${process.env.NODE_ENV || 'dev'}`),
-// });
+configDotenv({
+    path: path.join(__dirname, `../../.env.${process.env.NODE_ENV || 'dev'}`),
+});
 
 const {
     PORT,
