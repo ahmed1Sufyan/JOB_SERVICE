@@ -2,17 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 import { RequestJobData } from '../types/jobTypes';
 import logger from '../config/logger';
 import JobService from '../services/jobservice';
+import { validationResult } from 'express-validator';
 class JobController {
     constructor(private jobservice: JobService) {}
     async createJob(req: RequestJobData, res: Response, next: NextFunction) {
         const jobdata = req.body;
-        logger.info('Data Successfully passed!');
-        // Validate the data
-        // Create the job data in the database
-        // save the job data in the database
-        // send the success message
+
+        const result = validationResult(req);
+        if (!result.isEmpty()) {
+            logger.error(result);
+            return res.status(400).json({ errors: result.array() });
+        }
         try {
             const jobpost = await this.jobservice.createJob(jobdata);
+            logger.info('Data Successfully saved!');
             res.status(200).json({
                 message: 'Job created successfully',
                 data: jobpost,
