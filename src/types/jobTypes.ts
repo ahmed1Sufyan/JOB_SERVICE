@@ -39,3 +39,19 @@ export interface JobData {
 export interface RequestJobData extends Request {
     body: JobData;
 }
+export interface getJobfilter {
+    title?: string;
+    location?: string;
+    jobType?: string;
+    company?: string;
+    salaryRange?: string;
+    limit?: number;
+    page?: number;
+}
+
+// export interface Jobdatatype {
+//     id: string;
+// }
+// export interface JobId extends Request {
+//     query: string;
+// }
