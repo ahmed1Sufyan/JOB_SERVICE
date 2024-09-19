@@ -1,9 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { JobApplications } from './JobApplications';
+import { JobApplication } from '../types/jobApplicationTypes';
 
-@Entity({ name: 'Jobs' })
+@Entity({ name: 'jobs' })
 export class Jobs {
     @PrimaryGeneratedColumn()
-    id: string;
+    id: number;
 
     @Column()
     jobTitle: string;
@@ -47,7 +50,10 @@ export class Jobs {
     @Column()
     jobCategory: string;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    createdAt: Date;
+
+    @Column({ type: 'date', default: () => 'null' })
     postDate: string;
 
     @Column({ type: 'date' })
@@ -76,6 +82,12 @@ export class Jobs {
 
     @Column()
     reportingManager: string;
+
+    @Column({ type: 'jsonb', nullable: true })
+    customQueries: { question: string; type: string }[]; // JSON to store dynamic queries
+
+    @OneToMany(() => JobApplications, (application) => application)
+    applications: JobApplication[];
 
     // @ManyToOne(() => User, (user) => user.jobPosts)
     // user: User;

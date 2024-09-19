@@ -19,4 +19,9 @@ jobRoutes
             jobController.createJob(req, res, next);
         },
     );
+jobRoutes
+    .route('/job/:id')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        jobController.getJobById(req, res, next);
+    });
 export default jobRoutes;

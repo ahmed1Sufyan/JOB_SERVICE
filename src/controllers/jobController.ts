@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { RequestJobData } from '../types/jobTypes';
+import { getJobfilter, RequestJobData } from '../types/jobTypes';
 import logger from '../config/logger';
 import JobService from '../services/jobservice';
 import { validationResult } from 'express-validator';
+import createHttpError from 'http-errors';
+
 class JobController {
     constructor(private jobservice: JobService) {}
     async createJob(req: RequestJobData, res: Response, next: NextFunction) {
@@ -24,32 +26,41 @@ class JobController {
             next(err);
         }
     }
-    static getJobs(req: Request, res: Response) {
-        res.json({ message: 'All jobs retrieved successfully' });
+    async getJobs(req: Request, res: Response) {
+        try {
+            // Destructure filters from query params
+            const filterdata: getJobfilter = req.query;
+            // Create query builder
+            await this.jobservice.getJobs(filterdata);
+            //     return res.status(200).json({
+            //       data: jobs,
+            //       total: totalJobs,
+            //       currentPage: Number(page),
+            //       totalPages: Math.ceil(totalJobs / Number(limit)),
+            //     });
+        } catch (error) {
+            logger.error('Error fetching jobs:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
     }
-    static getJobById(req: Request, res: Response) {
-        res.json({ message: 'Job retrieved successfully' });
+    async getJobById(req: Request, res: Response, next: NextFunction) {
+        const id = parseInt(req.params.id);
+        logger.debug(id);
+        if (isNaN(id) || id == undefined) {
+            throw createHttpError(400, 'Invalid ID provided');
+        }
+        try {
+            const job = await this.jobservice.getJob(Number(id));
+            res.json({ message: 'Job retrieved successfully', data: job });
+        } catch (error) {
+            next(error);
+        }
     }
     static updateJob(req: Request, res: Response) {
         res.status(200).json({ message: 'Job updated successfully' });
     }
     static deleteJob(req: Request, res: Response) {
         res.status(204).json({ message: 'Job deleted successfully' });
-    }
-    static applyForJob(req: Request, res: Response) {
-        res.status(201).json({ message: 'Application submitted successfully' });
-    }
-    static getApplicationsForJob(req: Request, res: Response) {
-        res.json({ message: 'All applications retrieved successfully' });
-    }
-    static getApplicationById(req: Request, res: Response) {
-        res.json({ message: 'Application retrieved successfully' });
-    }
-    static updateApplication(req: Request, res: Response) {
-        res.status(200).json({ message: 'Application updated successfully' });
-    }
-    static deleteApplication(req: Request, res: Response) {
-        res.status(204).json({ message: 'Application deleted successfully' });
     }
     static getJobsByCompany(req: Request, res: Response) {
         res.json({ message: 'All jobs retrieved for the company' });
