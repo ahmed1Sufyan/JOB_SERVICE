@@ -12,8 +12,8 @@ class JobApplicationService {
         // console.log(jobApplicationdata);
 
         try {
-            // @ts-expect-error later solve
             const jobApp = this.JobApplicationRepository.create(
+                // @ts-expect-error later will resolve
                 jobApplicationdata as unknown as JobApplication,
             );
             const res = await this.JobApplicationRepository.save(jobApp);

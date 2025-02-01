@@ -98,7 +98,7 @@ class JobApplication {
         res.status(204).json({ message: 'Application deleted successfully' });
     }
 
-    async sendMail(req: Request, res: Response) {
+    async sendMail(req: Request, res: Response, next: NextFunction) {
         const { name, email, text, to, subject } = req.body;
 
         // console.log(req.body);
@@ -154,11 +154,7 @@ class JobApplication {
             });
         } catch (error) {
             logger.error('Error sending email:', error);
-            return res.json({
-                success: false,
-                message: 'Failed to send email',
-                error,
-            });
+            return next(error);
         }
     }
 }
