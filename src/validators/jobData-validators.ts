@@ -5,93 +5,75 @@ export const jobDataValidation = checkSchema({
     jobTitle: {
         errorMessage:
             'Job Title is required and must be between 5 and 100 characters',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Job Title is required',
+        },
         trim: true,
         isLength: {
             options: { min: 5, max: 100 },
+            errorMessage: 'Job Title must be between 5 and 100 characters',
         },
     },
     jobDescription: {
         errorMessage:
             'Job Description is required and must be at least 50 characters long',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Job Description is required',
+        },
         trim: true,
         isLength: {
             options: { min: 50 },
+            errorMessage: 'Job Description must be at least 50 characters long',
         },
     },
-    companyName: {
+    company: {
         errorMessage:
-            'Company Name is required and must be between 3 and 100 characters',
-        notEmpty: true,
-        trim: true,
-        isLength: {
-            options: { min: 3, max: 100 },
+            'Company information is required and must include name and website',
+        notEmpty: {
+            errorMessage: 'Company information is required',
+        },
+        custom: {
+            options: (value: Record<string, string>) => {
+                return (
+                    typeof value === 'object' &&
+                    typeof value.name === 'string' &&
+                    value.name.trim().length >= 3 &&
+                    value.name.trim().length <= 100 &&
+                    typeof value.website === 'string' &&
+                    value.website.trim() !== ''
+                );
+            },
+            errorMessage:
+                'Company must have a valid name (3-100 characters) and website',
         },
     },
-    // location: {
-    //     city: {
-    //         errorMessage: 'City is required',
-    //         notEmpty: true,
-    //         trim: true,
-
-    //     },
-    //     state: {
-    //         errorMessage: 'State is required',
-    //         notEmpty: true,
-    //         trim: true,
-    //     },
-    //     country: {
-    //         errorMessage: 'Country is required',
-    //         notEmpty: true,
-    //         trim: true,
-    //     },
-    //     remoteOption: {
-    //         errorMessage:
-    //             'Remote Option is required and must be one of "Remote", "On-site", or "Hybrid"',
-    //         notEmpty: true,
-    //         trim: true,
-    //         isIn: {
-    //             options: ['Remote', 'On-site', 'Hybrid'],
-    //         },
-    //     },
-    // },
-    employmentType: {
+    jobType: {
         errorMessage:
-            'Employment Type is required and must be one of "Full-time", "Part-time", or "Contract"',
-        notEmpty: true,
+            'Job Type is required and must be one of "Full-time", "Part-time", "Contract", "Internship", or "Temporary"',
+        notEmpty: {
+            errorMessage: 'Job Type is required',
+        },
         trim: true,
         isIn: {
-            options: ['Full-time', 'Part-time', 'Contract'],
+            options: [
+                [
+                    'Full-time',
+                    'Part-time',
+                    'Contract',
+                    'Internship',
+                    'Temporary',
+                ],
+            ],
+            errorMessage:
+                'Job Type must be one of "Full-time", "Part-time", "Contract", "Internship", or "Temporary"',
         },
     },
-    // salaryRange: {
-    //     minSalary: {
-    //         errorMessage: 'Minimum Salary is required and must be a number',
-    //         notEmpty: true,
-    //         isNumeric: true,
-    //         toFloat: true,
-    //     },
-    //     maxSalary: {
-    //         errorMessage: 'Maximum Salary is required and must be a number',
-    //         notEmpty: true,
-    //         isNumeric: true,
-    //         toFloat: true,
-    //     },
-    //     currency: {
-    //         errorMessage:
-    //             'Currency is required and must be a valid currency code (e.g., "USD")',
-    //         notEmpty: true,
-    //         trim: true,
-    //         isLength: {
-    //             options: { min: 3, max: 3 },
-    //         },
-    //     },
-    // },
     experienceLevel: {
         errorMessage:
             'Experience Level is required and must be one of "Entry-level", "Mid-level", or "Senior-level"',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Experience Level is required',
+        },
         trim: true,
         isIn: {
             options: [['Entry-level', 'Mid-level', 'Senior-level']],
@@ -101,20 +83,29 @@ export const jobDataValidation = checkSchema({
     },
     skills: {
         errorMessage: 'Skills are required and must be an array of strings',
-        isArray: true,
-        notEmpty: true,
+        isArray: {
+            errorMessage: 'Skills must be an array',
+        },
+        notEmpty: {
+            errorMessage: 'Skills are required',
+        },
         custom: {
             options: (value: string[]) =>
                 value.every(
                     (skill) => typeof skill === 'string' && skill.trim() !== '',
                 ),
+            errorMessage: 'Each skill must be a non-empty string',
         },
     },
     qualifications: {
         errorMessage:
             'Qualifications are required and must be an array of strings',
-        isArray: true,
-        notEmpty: true,
+        isArray: {
+            errorMessage: 'Qualifications must be an array',
+        },
+        notEmpty: {
+            errorMessage: 'Qualifications are required',
+        },
         custom: {
             options: (value: string[]) =>
                 value.every(
@@ -122,90 +113,108 @@ export const jobDataValidation = checkSchema({
                         typeof qualification === 'string' &&
                         qualification.trim() !== '',
                 ),
+            errorMessage: 'Each qualification must be a non-empty string',
         },
     },
     industry: {
         errorMessage: 'Industry is required and must be a non-empty string',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Industry is required',
+        },
         trim: true,
     },
     jobCategory: {
         errorMessage: 'Job Category is required and must be a non-empty string',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Job Category is required',
+        },
         trim: true,
     },
-    postDate: {
-        errorMessage: 'Post Date is required and must be a valid date',
-        notEmpty: true,
-        isISO8601: true,
-    },
-    applicationDeadline: {
-        errorMessage:
-            'Application Deadline is required and must be a valid future date',
-        notEmpty: true,
-        isISO8601: true,
-        custom: {
-            options: (value: Date) => new Date(value) > new Date(), // Ensure future date
-        },
-    },
+    // postDate: {
+    //     errorMessage: 'Post Date must be a valid ISO8601 date or null',
+    //     optional: true,
+    //     isISO8601: {
+    //         errorMessage: 'Post Date must be a valid ISO8601 date',
+    //     },
+    // },
+    // applicationDeadline: {
+    //     errorMessage:
+    //         'Application Deadline is required and must be a valid future date',
+    //     notEmpty: {
+    //         errorMessage: 'Application Deadline is required',
+    //     },
+    //     isISO8601: {
+    //         errorMessage: 'Application Deadline must be a valid ISO8601 date',
+    //     },
+    //     custom: {
+    //         options: (value: Date) => new Date(value) > new Date(), // Ensure future date
+    //         errorMessage: 'Application Deadline must be a future date',
+    //     },
+    // },
     applicationLink: {
         errorMessage: 'Application Link is required and must be a valid URL',
-        notEmpty: true,
-        isURL: true,
-    },
-    companyOverview: {
-        errorMessage:
-            'Company Overview is required and must be a non-empty string',
-        notEmpty: true,
-        trim: true,
-    },
-    benefits: {
-        errorMessage: 'Benefits are required and must be an array of strings',
-        isArray: true,
-        notEmpty: true,
-        custom: {
-            options: (value: string[]) =>
-                value.every(
-                    (benefit) =>
-                        typeof benefit === 'string' && benefit.trim() !== '',
-                ),
+        notEmpty: {
+            errorMessage: 'Application Link is required',
         },
+        // isURL: {
+        //     errorMessage: 'Application Link must be a valid URL',
+        // },
     },
     jobFunction: {
         errorMessage: 'Job Function is required and must be a non-empty string',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Job Function is required',
+        },
         trim: true,
     },
     workSchedule: {
         errorMessage:
-            'Work Schedule is required and must be one of "Flexible", "9-to-5", or other predefined options',
-        notEmpty: true,
+            'Work Schedule is required and must be a non-empty string',
+        notEmpty: {
+            errorMessage: 'Work Schedule is required',
+        },
         trim: true,
     },
     visaSponsorship: {
         errorMessage:
             'Visa Sponsorship is required and must be one of "Yes" or "No"',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Visa Sponsorship is required',
+        },
         trim: true,
         isIn: {
             options: [['Yes', 'No']],
             errorMessage: 'Visa Sponsorship must be either "Yes" or "No"',
         },
     },
-    numOpenings: {
-        errorMessage:
-            'Number of Openings is required and must be a positive integer',
-        notEmpty: true,
-        isInt: true,
-        toInt: true,
-        custom: {
-            options: (value: number) => value > 0,
-        },
-    },
     reportingManager: {
         errorMessage:
             'Reporting Manager is required and must be a non-empty string',
-        notEmpty: true,
+        notEmpty: {
+            errorMessage: 'Reporting Manager is required',
+        },
         trim: true,
+    },
+    customQueries: {
+        errorMessage: 'Custom Queries must be a valid array of objects',
+        optional: true,
+        isArray: {
+            errorMessage: 'Custom Queries must be an array',
+        },
+        custom: {
+            options: (value: Array<Record<string, string>>) =>
+                value.every(
+                    (query) =>
+                        typeof query.question === 'string' &&
+                        query.type in { text: 1, 'multiple-choice': 1 } &&
+                        (query.answer === undefined ||
+                            (Array.isArray(query.answer) &&
+                                query.answer.every(
+                                    (a) => typeof a === 'string',
+                                )) ||
+                            typeof query.answer === 'string'),
+                ),
+            errorMessage: 'Each custom query must have valid fields',
+        },
     },
 });

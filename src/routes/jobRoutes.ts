@@ -24,4 +24,14 @@ jobRoutes
     .get((req: Request, res: Response, next: NextFunction) => {
         jobController.getJobById(req, res, next);
     });
+jobRoutes
+    .route('/jobs')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        jobController.getJobs(req, res, next);
+    });
+jobRoutes
+    .route('/job/description-builder')
+    .post((req: Request, res: Response, next: NextFunction) => {
+        jobController.getDescriptionBuilder(req, res, next);
+    });
 export default jobRoutes;

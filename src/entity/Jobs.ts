@@ -2,20 +2,24 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { JobApplications } from './JobApplications';
 import { JobApplication } from '../types/jobApplicationTypes';
+import { SavedJob } from './SavedJob';
 
 @Entity({ name: 'jobs' })
 export class Jobs {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ type: 'jsonb', nullable: true })
+    company: Record<string, string>;
+
     @Column()
     jobTitle: string;
 
+    @Column({ type: 'int', nullable: false })
+    hiringPositions: number;
+
     @Column({ type: 'text' })
     jobDescription: string;
-
-    @Column()
-    companyName: string;
 
     @Column({ type: 'jsonb' })
     location: {
@@ -25,8 +29,13 @@ export class Jobs {
         remoteOption: string;
     };
 
-    @Column()
-    employmentType: string;
+    @Column({
+        type: 'text',
+        enum: ['Full-time', 'Part-time', 'Contract', 'Internship', 'Temporary'],
+        nullable: false,
+        default: 'Full-time',
+    })
+    jobType: string;
 
     @Column({ type: 'jsonb' })
     salaryRange: {
@@ -62,12 +71,6 @@ export class Jobs {
     @Column()
     applicationLink: string;
 
-    @Column({ type: 'text' })
-    companyOverview: string;
-
-    @Column('text', { array: true })
-    benefits: string[];
-
     @Column()
     jobFunction: string;
 
@@ -78,17 +81,25 @@ export class Jobs {
     visaSponsorship: string;
 
     @Column()
-    numOpenings: number;
-
-    @Column()
     reportingManager: string;
 
     @Column({ type: 'jsonb', nullable: true })
-    customQueries: { question: string; type: string }[]; // JSON to store dynamic queries
+    customQueries: {
+        question: string; // The question text
+        type: 'text' | 'multiple-choice'; // Type of answer: text or multiple-choice
+        answer?: string | string[]; // Dynamic: single text answer or multiple options
+    }[];
 
-    @OneToMany(() => JobApplications, (application) => application)
+    @OneToMany(() => JobApplications, (application) => application.job)
     applications: JobApplication[];
 
+    @Column({ type: 'text', nullable: true })
+    employerId: string;
+
+    @Column({ type: 'boolean', default: true })
+    status: boolean;
     // @ManyToOne(() => User, (user) => user.jobPosts)
     // user: User;
+    @OneToMany(() => SavedJob, (save) => save.job)
+    savedByUsers: SavedJob;
 }

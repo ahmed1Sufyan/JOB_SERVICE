@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { Timestamp } from 'typeorm';
 
 export interface JobData {
     jobTitle: string; // Title of the job
@@ -40,18 +41,50 @@ export interface RequestJobData extends Request {
     body: JobData;
 }
 export interface getJobfilter {
-    title?: string;
+    jobTitle?: string;
     location?: string;
-    jobType?: string;
-    company?: string;
+    jobCategory?: string;
+    experienceLevel?: string;
+    companyName?: string;
+    workSchedule?: string;
+    benefits?: string;
     salaryRange?: string;
     limit?: number;
     page?: number;
+    employmentType?: string;
+    createdAt?: Timestamp;
+    skills?: string;
 }
-
+export interface updateData {
+    body: getJobfilter;
+    params: {
+        id: string;
+    };
+}
 // export interface Jobdatatype {
 //     id: string;
 // }
 // export interface JobId extends Request {
 //     query: string;
+// }
+export interface prompt extends Request {
+    body: {
+        title: string;
+        companyName: string;
+        experience: string;
+        soft_skills: string;
+        role: string;
+        qualification: string;
+    };
+}
+
+// {
+//     //   "title": "React js is an js frontend to handle the frontend ui",
+//     "title" : "Make an interview like scenario start asking questions one by one for beginner react js developer to me,i will answer that what you ask if i dont know the answer give a postive reply and feedback and move on to the next question and repeat this process until you will have asked 10 questions about that topic now start!",
+//     "companyName": "Avanza Solutions",
+//     "experience": "5+ years of experience in software development",
+//     "soft_skills": "Strong communication,Teamwork,Problem-solving,Adaptability",
+//     "role": "Senior React Js developer",
+//     "qualification":
+//       "Bachelor's degree in Cs or related fields"
 // }
