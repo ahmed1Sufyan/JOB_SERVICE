@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import AIservice from '../services/AIservice';
 
 const AI = new AIservice();
@@ -27,7 +27,7 @@ const AI = new AIservice();
 //     };
 //   }
 export class AiResponseController {
-    async generateText(req: Request, res: Response) {
+    async generateText(req: Request, res: Response, next: NextFunction) {
         // console.log(req.body);
 
         const { jobTitle, experienceLevel } = req.body as {
@@ -35,10 +35,14 @@ export class AiResponseController {
             experienceLevel: string;
         };
 
-        const resp = await AI.generateTextAI({ jobTitle, experienceLevel });
-        return res.json({
-            data: resp,
-        });
+        try {
+            const resp = await AI.generateTextAI({ jobTitle, experienceLevel });
+            return res.json({
+                data: resp,
+            });
+        } catch (error) {
+            next(error);
+        }
 
         // const uploaded : UploadedFile  = req?.files!.resume as UploadedFile;
         // const filePath = './uploads/' + uploaded.name;
