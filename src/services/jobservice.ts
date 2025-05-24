@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
@@ -51,10 +53,9 @@ class JobService {
             // Add filter for experience level if provided
             if (filter.experienceLevel) {
                 query = query.andWhere(
-                    'Jobs.experienceLevel = :experienceLevel',
+                    'jobs."experienceLevel" = :experienceLevel', // Use double quotes for case-sensitive columns
                     { experienceLevel: filter.experienceLevel },
                 );
-                // Filter based on experience level using equality check
             }
 
             // Add filter for company name if provided
@@ -102,10 +103,25 @@ class JobService {
 
             // Add filter for skills if provided
             if (filter.skills) {
-                query = query.andWhere('Jobs.skills ILIKE :skills', {
-                    skills: `%${filter.skills}%`,
-                });
-                // Skills field uses wildcard and case-insensitive search
+                let skillsArray: string[] = [];
+
+                // Convert input to an array if it's a single string
+                if (typeof filter.skills === 'string') {
+                    skillsArray = [filter.skills.toLowerCase()];
+                } else if (Array.isArray(filter.skills)) {
+                    skillsArray = filter.skills.map((skill) =>
+                        skill.toLowerCase(),
+                    );
+                }
+
+                if (skillsArray.length > 0) {
+                    query = query.andWhere(
+                        'LOWER(Jobs.skills::TEXT)::TEXT[] && LOWER(:skills)::TEXT[]',
+                        {
+                            skills: skillsArray,
+                        },
+                    );
+                }
             }
 
             // Add filter for creation date if provided
@@ -124,9 +140,12 @@ class JobService {
             query = query.take(limit).skip((page - 1) * limit);
             // 'take' specifies how many records to retrieve
             // 'skip' defines how many records to skip for pagination
+            // console.log(query);
+            console.log('jobs');
 
             const jobs = await query.getMany(); // Fetch the matching jobs
 
+            console.log(jobs);
             return jobs; // Return the filtered list of jobs
         } catch (error: unknown) {
             const err = createHttpError(
@@ -136,24 +155,34 @@ class JobService {
             throw err;
         }
     }
-    async getJob(jobId: number) {
-        // TODO: Implement logic to get a single job
-        try {
-            const job = await this.JobRepository.findOne({
-                where: {
-                    id: jobId,
-                },
-            });
-            if (!job) {
-                throw createHttpError(404, 'Job not found');
-            }
-            // logger.info(job);
-            return job;
-        } catch (error) {
-            logger.error(error);
-            throw error;
-        }
+    async getJob(id: number) {
+        return await this.JobRepository.find({
+            where: {
+                id,
+            },
+            // relations: ['applications'],
+        });
     }
+    async getJobsById(id: string) {
+        // TODO: Implement logic to get a single job
+        // try {
+        return await this.JobRepository.find({
+            where: {
+                employerId: id,
+            },
+            relations: ['applications'],
+        });
+        //     if (!job) {
+        //         throw createHttpError(404, 'Job not found');
+        //     }
+        //     // logger.info(job);
+        //     return job;
+        // } catch (error) {
+        //     logger.error(error);
+        //     throw error;
+        // }
+    }
+
     async updateJob() {
         // TODO: Implement logic to update a job
         // return await this.JobRepository.update({id : id},{...updatedData})

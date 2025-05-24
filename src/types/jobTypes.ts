@@ -4,7 +4,10 @@ import { Timestamp } from 'typeorm';
 export interface JobData {
     jobTitle: string; // Title of the job
     jobDescription: string; // Detailed description of the job
-    companyName: string; // Name of the company posting the job
+    company: {
+        name: string;
+        website: string;
+    }; // Name of the company posting the job
     location: {
         // Location object with city, state, country, and remote options
         city: string;
@@ -53,7 +56,7 @@ export interface getJobfilter {
     page?: number;
     employmentType?: string;
     createdAt?: Timestamp;
-    skills?: string;
+    skills?: string | string[];
 }
 export interface updateData {
     body: getJobfilter;

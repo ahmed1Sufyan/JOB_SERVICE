@@ -10,10 +10,19 @@ const Airoutes = express.Router();
 const AiResponseControl = new AiResponseController();
 Airoutes.post(
     '/generateText',
-    fileUpload({
-        createParentPath: true,
-        limits: { fileSize: 10 * 1024 * 1024 },
-    }),
+    fileUpload(),
+    async (req: Request, res: Response, next: NextFunction) => {
+        await AiResponseControl.generateText(req, res, next);
+    },
+);
+Airoutes.post(
+    '/generateTest',
+    async (req: Request, res: Response, next: NextFunction) => {
+        await AiResponseControl.TestAI(req, res, next);
+    },
+);
+Airoutes.post(
+    '/chatbot',
     async (req: Request, res: Response, next: NextFunction) => {
         await AiResponseControl.generateText(req, res, next);
     },

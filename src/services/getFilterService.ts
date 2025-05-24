@@ -28,7 +28,12 @@ export const getFilters = (filterdata: getJobfilter) => {
         // createdAt: filterdata.createdAt
         //     ? new Date(filterdata.createdAt)
         //     : undefined, // If they ask for a creation date, we note it down and convert it to a date
-        skills: filterdata.skills ? filterdata.skills : undefined, // If they ask for skills, we note it down
+        skills:
+            filterdata.skills && Array.isArray(filterdata.skills)
+                ? filterdata.skills.map((skill: string) => skill.toLowerCase())
+                : filterdata.skills
+                  ? filterdata.skills
+                  : undefined, // If they ask for skills, we note it down
     };
     return filter;
 };

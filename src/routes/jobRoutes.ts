@@ -25,6 +25,11 @@ jobRoutes
         jobController.getJobById(req, res, next);
     });
 jobRoutes
+    .route('/jobs/:id')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        jobController.getJobsById(req, res, next);
+    });
+jobRoutes
     .route('/jobs')
     .get((req: Request, res: Response, next: NextFunction) => {
         jobController.getJobs(req, res, next);

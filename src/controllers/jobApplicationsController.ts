@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { NextFunction, Request, Response } from 'express';
@@ -9,9 +10,16 @@ import { log } from 'console';
 import { AppDataSource } from '../config/data-source';
 import { Jobs } from '../entity/Jobs';
 import nodemailer from 'nodemailer';
+import { UploadedFile } from 'express-fileupload';
+import { v4 as uuidv4 } from 'uuid';
+import { S3Storage } from '../common/S3Storage';
+import { getMatchedSkills } from '../services/skillsMatched';
 
 class JobApplication {
-    constructor(private jobApplicationService: JobApplicationService) {}
+    constructor(
+        private jobApplicationService: JobApplicationService,
+        private S3Storage: S3Storage,
+    ) {}
 
     async applyForJob(
         req: jobApplicationData,
@@ -20,6 +28,19 @@ class JobApplication {
     ) {
         const { jobId, applicantId, applicationDate, skills, experienceLevel } =
             req.body;
+        console.log(req.body);
+        // return res.json({data : "ok"})
+        if (
+            !jobId ||
+            !applicantId ||
+            !applicationDate ||
+            !skills ||
+            !experienceLevel
+        ) {
+            return res.json({
+                message: 'Provide Valid Data',
+            });
+        }
         const jobrepo = AppDataSource.getRepository(Jobs);
         const job = await jobrepo.findOne({
             where: {
@@ -32,26 +53,58 @@ class JobApplication {
                 message: 'job not found',
             });
         }
-        const hasApplied = await this.jobApplicationService.hasApplied(
-            applicantId,
-            job,
-        );
+
+        const file = req?.files?.resume as UploadedFile; // Assuming 'resume' is the key from the frontend
+        let resume;
+        if (file) {
+            const name = `${uuidv4()}.${file.mimetype.split('/')[1]}`;
+            resume = await this.S3Storage.uploadFile({
+                filename: name,
+                fileData: file.data,
+            });
+
+            // resp.push(uploadedFile);
+        }
+
+        let hasApplied;
+        if (job) {
+            hasApplied = await this.jobApplicationService.hasApplied(
+                applicantId,
+                job!,
+            );
+        }
         if (hasApplied) {
             return res.status(401).json({
                 status: 401,
                 message: 'You Have Already apply this job',
             });
         }
+        let skillsMatched;
+        if (skills) {
+            // console.log(skills)
+            logger.info(JSON.stringify(job?.skills));
+            const userskills = (skills as unknown as string)
+                .split(',')
+                .map((skill) => skill.trim());
+            // console.log(userskills);
+
+            skillsMatched = getMatchedSkills(userskills, job?.skills!);
+        }
+        logger.info(`skillsMatched ${JSON.stringify(skillsMatched)}`);
         try {
             // @ts-expect-error later will solve
             const resp = await this.jobApplicationService.ApplyforJob({
-                job,
+                ...(resume && { resume_Url: resume }),
+                ...(job && { job }),
                 applicantId,
-                applicationDate,
-                skills,
+                ...(applicationDate && { applicationDate }),
+                ...(skillsMatched && { skillsMatched }),
                 experienceLevel,
             } as unknown as JobApplication);
-            return res.status(201).json({
+
+            console.log(resp);
+
+            return res.json({
                 id: resp,
                 message: 'Application submitted successfully',
             });
@@ -65,13 +118,24 @@ class JobApplication {
         next: NextFunction,
     ) {
         const id = req.params.id;
+        const { status } = req.query;
+        console.log(req.query);
+
         logger.debug(id);
         if (id == undefined) {
             throw createHttpError(400, 'Invalid ID provided');
         }
         try {
-            const job = await this.jobApplicationService.getAllApplications(id);
-            logger.error(job);
+            let job;
+
+            if (status) {
+                job = await this.jobApplicationService.getAllApplications(
+                    id,
+                    status as string,
+                );
+            } else
+                job = await this.jobApplicationService.getAllApplications(id);
+            // logger.error(job);
             if (!job || job == null) {
                 log(job);
                 return res.status(404).json({
@@ -79,6 +143,8 @@ class JobApplication {
                     data: [],
                 });
             }
+            console.log(job);
+
             return res.json({
                 message: 'Job Applications retrieved successfully',
                 data: job,
@@ -88,11 +154,75 @@ class JobApplication {
             return next(err);
         }
     }
+    async getApplicationsForEmployer(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) {
+        const id = req.params.id;
+        logger.debug(id);
+        if (id == undefined) {
+            throw createHttpError(400, 'Invalid ID provided');
+        }
+        try {
+            const job =
+                await this.jobApplicationService.getAllApplicationsByemployer(
+                    id,
+                );
+            // logger.error(job);
+            if (job == null) {
+                // log(job);
+                return res.status(404).json({
+                    message: 'No job applications found for this job',
+                    data: [],
+                });
+            }
+            const modified = job.map((j) => {
+                if (j.resume_Url)
+                    return {
+                        ...j,
+                        resume_Url: this.S3Storage.getObjectUrl(j.resume_Url),
+                    };
+
+                return j;
+            });
+
+            return res.json({
+                message: 'Job Applications retrieved successfully',
+                data: modified,
+            });
+        } catch (error: unknown) {
+            const err = createHttpError(500, `Something went wrong ${error}`);
+            return next(err);
+        }
+    }
     static getApplicationById(req: Request, res: Response) {
         res.json({ message: 'Application retrieved successfully' });
     }
-    static updateApplication(req: Request, res: Response) {
-        res.status(200).json({ message: 'Application updated successfully' });
+    async updateApplication(req: Request, res: Response, next: NextFunction) {
+        const { status, userId, jobId } = req.body;
+        console.log(status);
+        console.log(userId);
+        console.log(jobId);
+
+        if (!status || !userId || !jobId) {
+            return res.status(400).json({ message: 'Invalid Data' });
+        }
+        const data = {
+            status: status as string,
+            userId: userId as string,
+            jobId: jobId as number,
+        };
+        try {
+            const resp =
+                await this.jobApplicationService.updateApplications(data);
+            res.status(200).json({
+                message: 'Application updated successfully',
+                data: resp,
+            });
+        } catch (error) {
+            next(createHttpError(400, `something went wrong : ${error}`));
+        }
     }
     static deleteApplication(req: Request, res: Response) {
         res.status(204).json({ message: 'Application deleted successfully' });

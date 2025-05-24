@@ -99,7 +99,7 @@ class JobController {
     }
     async createJob(req: RequestJobData, res: Response, next: NextFunction) {
         const jobdata = req.body;
-        // console.log(jobdata);
+        console.log(jobdata);
 
         // return res.status(400).json({ msg : "ok"});
 
@@ -108,6 +108,12 @@ class JobController {
             logger.error(result);
         }
         try {
+            // const data = {
+            //        ...{ "name": jobdata?.company,
+            //         "website": "https://davis.com/"
+            //       },
+            //     ...jobdata
+            // }
             const jobpost = await this.jobservice.createJob(jobdata);
             logger.info('Data Successfully saved!');
             res.status(200).json({
@@ -124,8 +130,8 @@ class JobController {
             const filterdata: getJobfilter = req.query;
             // Create query builder
             const filters = getFilters(filterdata);
-            console.log(filters);
 
+            console.log(filters);
             const jobs = await this.jobservice.getJobs(filters);
             // logger.info(jobs);
             res.status(201).json({
@@ -145,12 +151,31 @@ class JobController {
         if (isNaN(id) || id == undefined) {
             throw createHttpError(400, 'Invalid ID provided');
         }
-        try {
-            const job = await this.jobservice.getJob(Number(id));
-            res.json({ message: 'Job retrieved successfully', data: job });
-        } catch (error) {
-            next(!(error instanceof Error) ? error : error.message);
+
+        const job = await this.jobservice.getJob(id);
+
+        // console.log(job);
+
+        if (!job) {
+            res.json({ message: 'No Job Found' });
         }
+        res.json({ message: 'Job retrieved successfully', data: job });
+    }
+    async getJobsById(req: Request, res: Response, next: NextFunction) {
+        const id = parseInt(req.params.id);
+        logger.debug(id);
+        if (isNaN(id) || id == undefined) {
+            throw createHttpError(400, 'Invalid ID provided');
+        }
+
+        const job = await this.jobservice.getJobsById(String(id));
+
+        console.log(job);
+
+        if (!job) {
+            res.json({ message: 'No Job Found' });
+        }
+        res.json({ message: 'Job retrieved successfully', data: job });
     }
     updateJob(req: updateData, res: Response, next: NextFunction) {
         const { id } = req.params;
